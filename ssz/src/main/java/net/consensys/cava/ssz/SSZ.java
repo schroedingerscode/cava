@@ -547,6 +547,37 @@ public final class SSZ {
     }
   }
 
+  static void encodeFixedBytesListTo(int byteLength, List<? extends Bytes> elements, Consumer<Bytes> appender) {
+    // pre-calculate the list size - relies on knowing how encodeBytesTo does its serialization, but is worth it
+    // to avoid having to pre-serialize all the elements
+    long listSize = 0;
+    for (Bytes bytes : elements) {
+      listSize += 4;
+      listSize += bytes.size();
+      if (listSize > Integer.MAX_VALUE) {
+        throw new IllegalArgumentException("Cannot serialize list: overall length is too large");
+      }
+    }
+    appender.accept(encodeUInt32(listSize));
+    for (Bytes bytes : elements) {
+      encodeFixedBytesTo(byteLength, bytes, appender);
+    }
+  }
+
+  static void encodeFixedBytesListTo(
+      long listSize,
+      int byteLength,
+      List<? extends Bytes> elements,
+      Consumer<Bytes> appender) {
+    checkArgument(listSize > 0, "Cannot serialize list: list size must be positive");
+    if (listSize > Integer.MAX_VALUE) {
+      throw new IllegalArgumentException("Cannot serialize list: overall length is too large");
+    }
+    for (Bytes bytes : elements) {
+      encodeFixedBytesTo(byteLength, bytes, appender);
+    }
+  }
+
   /**
    * Encode a list of strings.
    *

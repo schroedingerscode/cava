@@ -54,7 +54,7 @@ public interface SSZReader {
   /**
    * Read a known size fixed-length bytes value from the SSZ source.
    *
-   * Note: prefer to use {@link #readBytes(int)} instead, especially when reading untrusted data.
+   * Note: prefer to use {@link #readFixedBytes(int, int)} instead, especially when reading untrusted data.
    *
    * @param byteLength The number of fixed-length Bytes (no length mixin) to read.
    * @return The bytes for the next value.
@@ -101,6 +101,19 @@ public interface SSZReader {
    */
   default byte[] readByteArray(int limit) {
     return readBytes(limit).toArrayUnsafe();
+  }
+
+  /**
+   * Read an array of fixed-length homogenous Bytes from the SSZ source.
+   *
+   * @param byteLength The number of fixed-length Bytes per array element.
+   * @param limit The maximum number of bytes to read.
+   * @return The byte array for the next value.
+   * @throws InvalidSSZTypeException If the next SSZ value is not a byte array, or would exceed the limit.
+   * @throws EndOfSSZException If there are no more SSZ values to read.
+   */
+  default byte[] readFixedByteArray(int byteLength, int limit) {
+    return readFixedBytes(byteLength, limit).toArrayUnsafe();
   }
 
   /**
@@ -354,6 +367,66 @@ public interface SSZReader {
    */
   default List<Bytes> readBytesList() {
     return readBytesList(Integer.MAX_VALUE);
+  }
+
+  /**
+   * Read a known-size fixed length list of known-size fixed length {@link Bytes} from the SSZ source. No length mixin
+   * is expected in either the list or the list elements.
+   *
+   * @param listSize The size of the fixed-length list being read.
+   * @param byteLength The number of fixed-length Bytes per homogenous List element.
+   * @param limit The maximum number of bytes to read for each list element.
+   * @return A list of {@link Bytes}.
+   * @throws InvalidSSZTypeException If the next SSZ value is not a list, any value in the list is not a byte array, or
+   *         the size of any byte array would exceed the limit.
+   * @throws EndOfSSZException If there are no more SSZ values to read.
+   */
+  List<Bytes> readFixedBytesList(long listSize, int byteLength, int limit);
+
+  /**
+   * Read a known-size fixed length list of known-size fixed length {@link Bytes} from the SSZ source. No length mixin
+   * is expected in either the list or the list elements.
+   *
+   * Note: prefer to use {@link #readFixedBytesList(long, int, int)} instead, especially when reading untrusted data.
+   *
+   * @param listSize The size of the fixed-length list being read.
+   * @param byteLength The number of fixed-length Bytes per homogenous List element.
+   * @return A list of {@link Bytes}.
+   * @throws InvalidSSZTypeException If the next SSZ value is not a list, any value in the list is not a byte array, or
+   *         any byte array is too large (greater than 2^32 bytes).
+   * @throws EndOfSSZException If there are no more SSZ values to read.
+   */
+  default List<Bytes> readFixedBytesList(long listSize, int byteLength) {
+    return readFixedBytesList(listSize, byteLength, Integer.MAX_VALUE);
+  }
+
+  /**
+   * Read a list of known-size fixed length {@link Bytes} from the SSZ source. A length mixin IS expected for the list,
+   * but IS NOT expected for the list elements.
+   *
+   * @param byteLength The number of fixed-length Bytes per homogenous List element.
+   * @param limit The maximum number of bytes to read for each list element.
+   * @return A list of {@link Bytes}.
+   * @throws InvalidSSZTypeException If the next SSZ value is not a list, any value in the list is not a byte array, or
+   *         the size of any byte array would exceed the limit.
+   * @throws EndOfSSZException If there are no more SSZ values to read.
+   */
+  List<Bytes> readFixedBytesList(int byteLength, int limit);
+
+  /**
+   * Read a list of known-size fixed length {@link Bytes} from the SSZ source. A length mixin IS expected for the list,
+   * but IS NOT expected for the list elements.
+   *
+   * Note: prefer to use {@link #readFixedBytesList(int, int)} instead, especially when reading untrusted data.
+   *
+   * @param byteLength The number of fixed-length Bytes per homogenous List element.
+   * @return A list of {@link Bytes}.
+   * @throws InvalidSSZTypeException If the next SSZ value is not a list, any value in the list is not a byte array, or
+   *         any byte array is too large (greater than 2^32 bytes).
+   * @throws EndOfSSZException If there are no more SSZ values to read.
+   */
+  default List<Bytes> readFixedBytesList(int byteLength) {
+    return readFixedBytesList(byteLength, Integer.MAX_VALUE);
   }
 
   /**
