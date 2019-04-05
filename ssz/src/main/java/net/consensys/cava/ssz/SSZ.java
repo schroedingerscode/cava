@@ -154,6 +154,11 @@ public final class SSZ {
     appender.accept(value);
   }
 
+  static void encodeFixedBytesTo(int byteLength, Bytes value, Consumer<Bytes> appender) {
+    checkArgument(byteLength == value.size(), "byteLength must be the same size as the value being encoded");
+    appender.accept(value);
+  }
+
   /**
    * Encode a value to a {@link Bytes} value.
    *

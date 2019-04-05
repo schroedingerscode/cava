@@ -52,6 +52,32 @@ public interface SSZReader {
   Bytes readBytes(int limit);
 
   /**
+   * Read a known size fixed-length bytes value from the SSZ source.
+   *
+   * Note: prefer to use {@link #readBytes(int)} instead, especially when reading untrusted data.
+   *
+   * @param byteLength The number of fixed-length Bytes (no length mixin) to read.
+   * @return The bytes for the next value.
+   * @throws InvalidSSZTypeException If the next SSZ value is not a byte array, or is too large (greater than 2^32
+   *         bytes).
+   * @throws EndOfSSZException If there are no more SSZ values to read.
+   */
+  default Bytes readFixedBytes(int byteLength) {
+    return readFixedBytes(byteLength, Integer.MAX_VALUE);
+  }
+
+  /**
+   * Read a known size fixed-length bytes value from the SSZ source.
+   *
+   * @param byteLength The number of fixed-length Bytes (no length mixin) to read.
+   * @param limit The maximum number of bytes to read.
+   * @return The bytes for the next value.
+   * @throws InvalidSSZTypeException If the next SSZ value is not a byte array, or would exceed the limit.
+   * @throws EndOfSSZException If there are no more SSZ values to read.
+   */
+  Bytes readFixedBytes(int byteLength, int limit);
+
+  /**
    * Read a byte array from the SSZ source.
    *
    * Note: prefer to use {@link #readByteArray(int)} instead, especially when reading untrusted data.

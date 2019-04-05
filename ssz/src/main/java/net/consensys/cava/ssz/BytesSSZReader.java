@@ -57,6 +57,12 @@ final class BytesSSZReader implements SSZReader {
   }
 
   @Override
+  public Bytes readFixedBytes(int byteLength, int limit) {
+    ensureBytes(byteLength, () -> "SSZ encoded data is not a fixed-length byte array");
+    return consumeBytes(byteLength);
+  }
+
+  @Override
   public int readInt(int bitLength) {
     checkArgument(bitLength % 8 == 0, "bitLength must be a multiple of 8");
     int byteLength = bitLength / 8;

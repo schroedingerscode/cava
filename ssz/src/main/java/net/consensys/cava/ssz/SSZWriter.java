@@ -65,6 +65,17 @@ public interface SSZWriter {
   }
 
   /**
+   * Encode a known fixed-length {@link Bytes} value to SSZ without the length mixin.
+   *
+   * @param byteLength the number of byts to write
+   * @param value the byte array to encode
+   * @throws IllegalArgumentException if the byteLength is not the same size as value.
+   */
+  default void writeFixedBytes(int byteLength, Bytes value) {
+    SSZ.encodeFixedBytesTo(byteLength, value, this::writeSSZ);
+  }
+
+  /**
    * Write a string to the output.
    *
    * @param str the string to write
