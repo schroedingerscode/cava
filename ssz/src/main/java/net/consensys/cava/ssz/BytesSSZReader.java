@@ -136,6 +136,11 @@ final class BytesSSZReader implements SSZReader {
   }
 
   @Override
+  public List<Bytes> readBytesList(long listSize, int limit) {
+    return readList(listSize, remaining -> readByteArray(limit), Bytes::wrap);
+  }
+
+  @Override
   public List<Bytes> readFixedBytesList(long listSize, int byteLength, int limit) {
     checkArgument(listSize <= Integer.MAX_VALUE, "Cannot read bytes list: expected length is too large");
     return readFixedList(listSize, remaining -> readFixedByteArray(byteLength, limit), Bytes::wrap);
@@ -227,6 +232,27 @@ final class BytesSSZReader implements SSZReader {
     try {
       // use a long to simulate reading unsigned
       long listSize = consumeBytes(4).toLong(LITTLE_ENDIAN);
+      elements = new ArrayList<>();
+      while (listSize > 0) {
+        byte[] bytes = bytesSupplier.apply(listSize);
+        elements.add(converter.apply(bytes));
+        listSize -= bytes.length;
+        listSize -= 4;
+        if (listSize < 0) {
+          throw new InvalidSSZTypeException("SSZ encoded list length does not align with lengths of its elements");
+        }
+      }
+    } catch (Exception e) {
+      this.index = originalIndex;
+      throw e;
+    }
+    return elements;
+  }
+
+  private <T> List<T> readList(long listSize, LongFunction<byte[]> bytesSupplier, Function<byte[], T> converter) {
+    int originalIndex = this.index;
+    List<T> elements;
+    try {
       elements = new ArrayList<>();
       while (listSize > 0) {
         byte[] bytes = bytesSupplier.apply(listSize);
